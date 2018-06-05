@@ -27,9 +27,23 @@ def create_parser():
 def get_matches_list(reg, file):
     results = []
     for line in file:
-        result = re.search(reg, line).group(0)
+        try:
+            result = re.search(reg, line).group(0)
+        except:
+            continue
         results.append(result)
     return results
+
+
+def count_lines(reg, file):
+    counter = 0
+    for line in file:
+        try:
+            result = re.search(reg, line).group(0)
+        except:
+            continue
+        counter += 1
+    return counter
 
 
 if __name__ == '__main__':
@@ -49,3 +63,5 @@ if __name__ == '__main__':
             elif params.count:
                 results = get_matches_list(params.reg[0], file)
                 print(len(results))
+            elif params.count_lines:
+                print(count_lines(params.reg[0], file))
