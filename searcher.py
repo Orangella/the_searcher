@@ -48,6 +48,7 @@ def count_matches(reg, file):
     """
 
     counter = 0
+    file.seek(0)
     for line in file:
         result = re.findall(reg, line)
         counter += len(result)
@@ -79,6 +80,7 @@ def get_statistic_dict(reg, file):
     """
 
     results = {}
+    file.seek(0)
     for line in file:
         result = re.findall(reg, line)
         for item in result:
@@ -97,7 +99,7 @@ def sort_matches(reg, file, sort='abc'):
         or alphabet (sort='abc')
     :return: sorted list of matches
     """
-    
+
     statistic_dict = get_statistic_dict(reg, file)
     sorted_results = []
     if sort == 'freq':
@@ -121,30 +123,31 @@ def stat(reg, file, output_format, sort='abc', ord='asc'):
     :return: sorted statistic list
     """
 
-    output = []
+    sorted_statistic = []
     statistic_dict = get_statistic_dict(reg, file)
     total = count_matches(reg, file)
     if sort == 'abc':
         for k in sort_matches(reg, file, 'abc'):
             if output_format == 'count':
-                output.append([k, statistic_dict[k]])
+                sorted_statistic.append([k, statistic_dict[k]])
             elif output_format == 'freq':
-                output.append([k, statistic_dict[k]/total])
+                sorted_statistic.append([k, statistic_dict[k]/total])
     elif sort == 'freq':
         for k in sort_matches(reg, file, 'freq'):
             if output_format == 'count':
-                output.append([k, statistic_dict[k]])
+                sorted_statistic.append([k, statistic_dict[k]])
             elif output_format == 'freq':
-                output.append([k, statistic_dict[k]/total])
+                sorted_statistic.append([k, statistic_dict[k]/total])
     if ord == 'asc':
-        return output
+        return sorted_statistic
     elif ord == 'desc':
-        output.reverse()
-        return output
+        sorted_statistic.reverse()
+        return sorted_statistic
 
 
 if __name__ == '__main__':
 
+    output = []
     parser = create_parser()
     params = parser.parse_args()
     print(params)
@@ -156,18 +159,24 @@ if __name__ == '__main__':
                 if params.count:
                     print(len(results))
                 else:
-                    print(results)
+                    output = results
             elif params.count:
                 print(count_matches(params.reg[0], file))
             elif params.count_lines:
                 print(count_lines(params.reg[0], file))
             elif params.sort:
                 if params.sort == 'freq':
-                    print(sort_matches(params.reg[0], file, 'freq'))
+                    output = sort_matches(params.reg[0], file, 'freq')
                 elif params.sort == 'abc':
-                    print(sort_matches(params.reg[0], file, 'abc'))
+                    output = sort_matches(params.reg[0], file, 'abc')
             elif params.statistic:
                 if params.statistic == 'freq':
-                    print(stat(params.reg[0], file, 'freq'))
+                    output = stat(params.reg[0], file, 'freq')
                 elif params.statistic == 'count':
-                    print(stat(params.reg[0], file, 'count'))
+                    output = stat(params.reg[0], file, 'count')
+            if params.first_n:
+                print(output)
+                for i in range(int(params.first_n)):
+                    print(output[i])
+            else:
+                print(output)
