@@ -6,7 +6,8 @@ class SearcherTests(unittest.TestCase):
 
     def test_get_matches_list(self):
       self.assertEqual(searcher.get_matches_list('a', [' aa']), ['a', 'a'])
-      self.assertEqual(searcher.get_matches_list('a', ['aba','a']), ['a', 'a', 'a'])
+      self.assertEqual(searcher.get_matches_list('a', ['aba','a']),
+                       ['a', 'a', 'a'])
 
     def test_count_matches(self):
       self.assertEqual(searcher.count_matches('a', ['aa']), 2)

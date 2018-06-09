@@ -3,7 +3,10 @@ import argparse
 
 
 def create_parser():
-    # arguments parser
+    """
+    :return: an arguments parser
+    """
+
     parser = argparse.ArgumentParser()
     options = [
         ['-u', 'unique', 'store_true'],
@@ -24,6 +27,12 @@ def create_parser():
 
 
 def get_matches_list(reg, file):
+    """
+    :param reg: regular expression
+    :param file: filename
+    :return: a list of all matches of the regular expression in the file
+    """
+
     results = []
     for line in file:
         result = re.findall(reg, line)
@@ -32,6 +41,12 @@ def get_matches_list(reg, file):
 
 
 def count_matches(reg, file):
+    """
+    :param reg: regular expression
+    :param file: filename
+    :return: total count of all matches of the regular expression in the file
+    """
+
     counter = 0
     for line in file:
         result = re.findall(reg, line)
@@ -40,6 +55,12 @@ def count_matches(reg, file):
 
 
 def count_lines(reg, file):
+    """
+    :param reg: regular expression
+    :param file: filename
+    :return: total count of lines, where at least one match was found
+    """
+
     counter = 0
     for line in file:
         result = re.search(reg, line)
@@ -49,6 +70,14 @@ def count_lines(reg, file):
 
 
 def get_statistic_dict(reg, file):
+    """
+    :param reg: regular expression
+    :param file: filename
+    :return: dict with
+        keys: match of the regular expression in the file;
+        values: total count of this match
+    """
+
     results = {}
     for line in file:
         result = re.findall(reg, line)
@@ -60,42 +89,58 @@ def get_statistic_dict(reg, file):
     return results
 
 
-def sort_matches(reg, file, freq_or_abc):
+def sort_matches(reg, file, sort='abc'):
+    """
+    :param reg: regular expression
+    :param file: filename
+    :param sort: sorting of found matches by frequency (sort='freq')
+        or alphabet (sort='abc')
+    :return: sorted list of matches
+    """
+    
     statistic_dict = get_statistic_dict(reg, file)
     sorted_results = []
-    if freq_or_abc == 'freq':
+    if sort == 'freq':
         sorted_results = sorted(statistic_dict.items(), key=lambda x: x[1])
         sorted_results = [x[0] for x in sorted_results]
-    if freq_or_abc == 'abc':
+    if sort == 'abc':
         sorted_results = sorted(statistic_dict.keys())
     return sorted_results
 
 
-def stat(reg, file, freq_or_count, sort='abc', ord='asc'):
-    sorted_results = []
+def stat(reg, file, output_format, sort='abc', ord='asc'):
+    """
+    :param reg: regular expression
+    :param file: filename
+    :param output_format: output count of matches (output_format='count')
+        or frequency in percents (output_format='freq')
+    :param sort: sorting of found matches by frequency (sort='freq')
+        or alphabet (sort='abc')
+    :param ord: sorting of found matches by ascending (ord='asc')
+        or descending (ord='desc') order
+    :return: sorted statistic list
+    """
+
+    output = []
     statistic_dict = get_statistic_dict(reg, file)
-    if freq_or_count == 'freq':
-        total = 0
-        for sum in statistic_dict.values():
-            total += sum
+    total = count_matches(reg, file)
     if sort == 'abc':
-        for k in sorted(statistic_dict.keys()):
-            if freq_or_count == 'count':
-                sorted_results.append([k, statistic_dict[k]])
-            elif freq_or_count == 'freq':
-                sorted_results.append([k, statistic_dict[k]/total])
+        for k in sort_matches(reg, file, 'abc'):
+            if output_format == 'count':
+                output.append([k, statistic_dict[k]])
+            elif output_format == 'freq':
+                output.append([k, statistic_dict[k]/total])
     elif sort == 'freq':
-        s = sorted(statistic_dict.items(), key=lambda x: x[1])
-        for k in sorted(statistic_dict.items(), key=lambda x: x[1]):
-            if freq_or_count == 'count':
-                sorted_results.append([k[0], statistic_dict[k[0]]])
-            elif freq_or_count == 'freq':
-                sorted_results.append([k[0], statistic_dict[k[0]]/total])
+        for k in sort_matches(reg, file, 'freq'):
+            if output_format == 'count':
+                output.append([k, statistic_dict[k]])
+            elif output_format == 'freq':
+                output.append([k, statistic_dict[k]/total])
     if ord == 'asc':
-        return sorted_results
+        return output
     elif ord == 'desc':
-        sorted_results.reverse()
-        return sorted_results
+        output.reverse()
+        return output
 
 
 if __name__ == '__main__':
