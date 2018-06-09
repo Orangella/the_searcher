@@ -1,6 +1,5 @@
 import re
 import argparse
-import unittest
 
 
 def create_parser():
