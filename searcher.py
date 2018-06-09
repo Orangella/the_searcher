@@ -71,24 +71,31 @@ def sort_matches(reg, file, freq_or_abc):
     return sorted_results
 
 
-def stat(reg, file, freq_or_abc):
-    results = {}
+def stat(reg, file, freq_or_count, sort='abc', ord='asc'):
     sorted_results = []
-    for line in file:
-        result = re.findall(reg, line)
-        for item in result:
-            if item in results:
-                results[item] += 1
-            else:
-                results[item] = 1
-    if freq_or_abc == 'freq':
-        s = sorted(results.items(), key=lambda x: x[1])
-        for k in sorted(results.items(), key=lambda x: x[1]):
-            sorted_results.append([k[0], results[k[0]]])
-    if freq_or_abc == 'abc':
-        for k in sorted(results.keys()):
-            sorted_results.append([k, results[k]])
-    return sorted_results
+    statistic_dict = get_statistic_dict(reg, file)
+    if freq_or_count == 'freq':
+        total = 0
+        for sum in statistic_dict.values():
+            total += sum
+    if sort == 'abc':
+        for k in sorted(statistic_dict.keys()):
+            if freq_or_count == 'count':
+                sorted_results.append([k, statistic_dict[k]])
+            elif freq_or_count == 'freq':
+                sorted_results.append([k, statistic_dict[k]/total])
+    elif sort == 'freq':
+        s = sorted(statistic_dict.items(), key=lambda x: x[1])
+        for k in sorted(statistic_dict.items(), key=lambda x: x[1]):
+            if freq_or_count == 'count':
+                sorted_results.append([k[0], statistic_dict[k[0]]])
+            elif freq_or_count == 'freq':
+                sorted_results.append([k[0], statistic_dict[k[0]]/total])
+    if ord == 'asc':
+        return sorted_results
+    elif ord == 'desc':
+        sorted_results.reverse()
+        return sorted_results
 
 
 if __name__ == '__main__':
@@ -114,3 +121,8 @@ if __name__ == '__main__':
                     print(sort_matches(params.reg[0], file, 'freq'))
                 elif params.sort == 'abc':
                     print(sort_matches(params.reg[0], file, 'abc'))
+            elif params.statistic:
+                if params.statistic == 'freq':
+                    print(stat(params.reg[0], file, 'freq'))
+                elif params.statistic == 'count':
+                    print(stat(params.reg[0], file, 'count'))

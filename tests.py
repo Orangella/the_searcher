@@ -26,5 +26,33 @@ class SearcherTests(unittest.TestCase):
                                                 'test@mail.ru'], 'freq'),
                          ['ytr.com', 'mail.ru'])
 
+    def test_stat(self):
+        test_re = '\w+@([\w.-_]+)'
+        test_arr = ['test@ytr.com test@mail.ru test@mail.ru test@mail.ru']
+        self.assertEqual(searcher.stat(test_re, test_arr, 'count',
+                                       sort='abc', ord='asc'),
+                         [['mail.ru', 3], ['ytr.com', 1]])
+        self.assertEqual(searcher.stat(test_re, test_arr, 'freq',
+                                       sort='abc', ord='asc'),
+                         [['mail.ru', 0.75], ['ytr.com', 0.25]])
+        self.assertEqual(searcher.stat(test_re, test_arr, 'count',
+                                       sort='freq', ord='asc'),
+                         [['ytr.com', 1], ['mail.ru', 3]])
+        self.assertEqual(searcher.stat(test_re, test_arr, 'freq',
+                                       sort='freq', ord='asc'),
+                         [['ytr.com', 0.25], ['mail.ru', 0.75]])
+        self.assertEqual(searcher.stat(test_re, test_arr, 'count',
+                                       sort='abc', ord='desc'),
+                         [['ytr.com', 1], ['mail.ru', 3]])
+        self.assertEqual(searcher.stat(test_re, test_arr, 'freq',
+                                       sort='abc', ord='desc'),
+                         [['ytr.com', 0.25], ['mail.ru', 0.75]])
+        self.assertEqual(searcher.stat(test_re, test_arr, 'count',
+                                       sort='freq', ord='desc'),
+                         [['mail.ru', 3], ['ytr.com', 1]])
+        self.assertEqual(searcher.stat(test_re, test_arr, 'freq',
+                                       sort='freq', ord='desc'),
+                         [['mail.ru', 0.75], ['ytr.com', 0.25]])
+
 if __name__ == '__main__':
     unittest.main()
