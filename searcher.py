@@ -10,7 +10,9 @@ EMPTY_FILE_ERROR = 'Error: file "{0}" is empty'
 ERROR_FIRST_N_VALUE = 'Error: option "-n {0}" should be greater than zero'
 MSG_NO_MATCHES = 'No matches of regular expression in the file'
 MSG_UNKNOWN_ERROR = 'Sorry, an unknown error occured'
-
+MSG_CHOOSE_U_STAT = 'Warning: Choose -u or -stat'
+MSG_CHOOSE_C_STAT = 'Warning: Choose -c or -stat'
+MSG_CHOOSE_L_STAT = 'Warning: Choose -l or -stat'
 
 def create_parser():
     """
@@ -230,11 +232,13 @@ def main(params):
 
     filename = params.file[0]  # get filename
     reg = params.reg[0]  # get regular expression
-    if not filename.endswith('.txt'):  # Check file expansion
+
+    # open and check file
+    if not filename.endswith('.txt'):  # check file expansion
         print(ERROR_FILE_EXPANSION)
         return
     try:
-        with open(filename, 'r') as file:  # Fill data from file
+        with open(filename, 'r') as file:  # fill data from file
             for line in file:
                 data.append(line)
     except FileNotFoundError:
@@ -243,11 +247,15 @@ def main(params):
     except IOError:
         print(ERROR_FILE.format(filename))
         return
-    if not data:  # Check if data is empty
+    if not data:  # check if data is empty
         print(EMPTY_FILE_ERROR.format(filename))
         return
 
+    # work with arguments
     if params.unique:
+        if params.statistic:  # collision
+            print(MSG_CHOOSE_U_STAT)
+            return
         if params.count:  # if -u -c
             matches_list = get_matches_list(reg, data)
             matches_list = set(matches_list)
@@ -256,9 +264,15 @@ def main(params):
         else:  # if -u
             output_list = sort_matches(reg, data, sort=sort_option)
     elif params.count:  # if -c
+        if params.statistic:  # collision
+            print(MSG_CHOOSE_C_STAT)
+            return
         print(count_matches(reg, data))
         return
     elif params.count_lines:  # if -l
+        if params.statistic:  # collision
+            print(MSG_CHOOSE_L_STAT)
+            return
         print(count_lines(reg, data))
         return
     elif params.statistic:  # if -stat
@@ -266,6 +280,7 @@ def main(params):
     else:  # no options
         output_list = sort_matches(reg, data, sort_option, unique=False)
 
+    # output
     if output_list:
         show_list(output_list, first_n, reverse)
     elif output_stat:
