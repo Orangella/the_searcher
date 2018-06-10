@@ -42,14 +42,20 @@ def create_parser():
         ['-u', 'unique', 'store_true'],
         ['-c', 'count', 'store_true'],
         ['-l', 'count_lines', 'store_true'],
-        ['-s', 'sort', 'store'],
-        ['-o', 'order', 'store'],
         ['-n', 'first_n', 'store'],
         ['-stat', 'statistic', 'store'],
         ['--help', 'help', 'store_true']
     ]
     for option, name, action in options:
         parser.add_argument(option, dest=name, action=action)
+
+    options = [
+        ['-s', 'sort', 'store', 'abc'],
+        ['-o', 'order', 'store', 'asc']
+    ]
+    for option, name, action, const in options:
+        parser.add_argument(option, dest=name, action=action,
+                            const=const)
 
     parser.add_argument('reg', nargs=1)
     parser.add_argument('file', nargs=1)
@@ -175,7 +181,11 @@ def stat(reg, file, output_format, sort='abc', ord='asc'):
 
 
 def show_stat(list, first_n):
-    pass
+    if first_n:
+        for i in range(first_n):
+            print(list[i])
+    else:
+        print(output)
 
 
 def show_list(list, first_n):
@@ -214,28 +224,34 @@ def main(params):
             print(EMPTY_FILE_ERROR.format(filename))
             return
 
-        if params.unique:  
+        first_n = int(params.first_n) if params.first_n else 0
+        if params.unique:
             matches_list = get_matches_list(params.reg[0], data)
             matches_list = set(matches_list)
             if params.count:
                 print(len(matches_list))
             else:
-                output = matches_list
+                output_list = matches_list
         elif params.count:
             print(count_matches(params.reg[0], data))
         elif params.count_lines:
             print(count_lines(params.reg[0], data))
         elif params.sort:
             if params.sort == 'freq':
-                output = sort_matches(params.reg[0], data, 'freq')
+                output_list = sort_matches(params.reg[0], data, 'freq')
             elif params.sort == 'abc':
-                output = sort_matches(params.reg[0], data, 'abc')
+                output_list = sort_matches(params.reg[0], data, 'abc')
         elif params.statistic:
             if params.statistic == 'freq':
-                output = stat(params.reg[0], data, 'freq')
+                output_stat = stat(params.reg[0], data, 'freq')
             elif params.statistic == 'count':
-                output = stat(params.reg[0], data, 'count')
-        output_list(output, int(params.first_n))
+                output_stat = stat(params.reg[0], data, 'count')
+        else:  # no options
+            output_list = get_matches_list(params.reg[0], data)
+        if output_list:
+            show_list(output_list, first_n)
+        if output_stat:
+            show_list(output_stat, first_n)
 
 
 if __name__ == '__main__':
