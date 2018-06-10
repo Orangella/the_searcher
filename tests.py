@@ -17,6 +17,12 @@ class SearcherTests(unittest.TestCase):
         self.assertEqual(searcher.count_lines('a', ['aa']), 1)
         self.assertEqual(searcher.count_lines('a', ['aa', 'a']), 2)
 
+    def test_get_statistic_dict(self):
+        test_re = '\w+@([\w.-_]+)'
+        test_arr = ['test@ytr.com test@mail.ru test@mail.ru test@mail.ru']
+        self.assertEqual(searcher.get_statistic_dict(test_re, test_arr),
+                         {'ytr.com': 1, 'mail.ru': 3})
+
     def test_sort_matches(self):
         test_re = '\w+@([\w.-_]+)'
         test_arr = ['test@ytr.com test@mail.ru test@mail.ru test@mail.ru']
