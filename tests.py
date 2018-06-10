@@ -18,14 +18,18 @@ class SearcherTests(unittest.TestCase):
         self.assertEqual(searcher.count_lines('a', ['aa', 'a']), 2)
 
     def test_sort_matches(self):
-        self.assertEqual(searcher.sort_matches('\w+@([\w.-_]+)',
-                                               ['test@ytr.com test@mail.ru '
-                                                'test@mail.ru'], 'abc'),
+        test_re = '\w+@([\w.-_]+)'
+        test_arr = ['test@ytr.com test@mail.ru test@mail.ru test@mail.ru']
+        self.assertEqual(searcher.sort_matches(test_re, test_arr, 'abc'),
                          ['mail.ru', 'ytr.com'])
-        self.assertEqual(searcher.sort_matches('\w+@([\w.-_]+)',
-                                               ['test@ytr.com test@mail.ru '
-                                                'test@mail.ru'], 'freq'),
+        self.assertEqual(searcher.sort_matches(test_re, test_arr, 'freq'),
                          ['ytr.com', 'mail.ru'])
+        self.assertEqual(searcher.sort_matches(test_re, test_arr, 'abc',
+                                               unique=False),
+                         ['mail.ru', 'mail.ru', 'mail.ru', 'ytr.com'])
+        self.assertEqual(searcher.sort_matches(test_re, test_arr, 'freq',
+                                               unique=False),
+                         ['ytr.com', 'mail.ru', 'mail.ru', 'mail.ru'])
 
     def test_stat(self):
         test_re = '\w+@([\w.-_]+)'
