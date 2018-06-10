@@ -142,7 +142,7 @@ def sort_matches(reg, file, sort='abc', unique=True):
         # get sorted list of matches
         sorted_unique_results = [x[0] for x in sorted_unique_results]
     if sort == 'abc':
-        sorted_unique_results = sorted(statistic_dict.keys()) # sorting by abc
+        sorted_unique_results = sorted(statistic_dict.keys())  # sorting by abc
     if unique:
         return sorted_unique_results
     # if need to return all matches as many times as this match in the file
@@ -162,8 +162,6 @@ def stat(reg, file, output_format, sort):
         or frequency in percents (output_format='freq')
     :param sort: sorting of found matches by frequency (sort='freq')
         or alphabet (sort='abc')
-    :param ord: sorting of found matches by ascending (ord='asc')
-        or descending (ord='desc') order
     :return: sorted statistic list
     """
 
@@ -285,5 +283,3 @@ if __name__ == '__main__':
         print(MSG_NO_MATCHES)
     except:  # hide all errors
         print(MSG_UNKNOWN_ERROR)
-
-
