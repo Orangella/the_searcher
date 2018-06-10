@@ -138,7 +138,7 @@ def sort_matches(reg, file, sort='abc', unique=True):
     sorted_unique_results = []
     if sort == 'freq':
         sorted_unique_results = sorted(statistic_dict.items(),
-                                       key=lambda x: x[1])  # sorting by freq
+                                       key=lambda x: -x[1])  # sorting by freq
         # get sorted list of matches
         sorted_unique_results = [x[0] for x in sorted_unique_results]
     if sort == 'abc':
@@ -186,15 +186,21 @@ def stat(reg, file, output_format, sort):
     return sorted_statistic
 
 
-def show_stat(list, first_n, reverse):
+def show_stat(list, first_n, reverse, stat):
     if reverse:
         list.reverse()
+    if stat == 'freq':
+        print('Substr{0: <26}| Freq'.format(' '))
+        format_str = '{0: <32}| {1:.3f}'
+    else:
+        print('Substr{0: <26}| Count'.format(' '))
+        format_str = '{0: <32}| {1}'
     if first_n:
         for i in range(first_n):
-            print(list[i])
+            print(format_str.format(list[i][0], list[i][1]))
     else:
         for item in list:
-            print(item)
+            print(format_str.format(item[0], item[1]))
 
 
 def show_list(list, first_n, reverse):
@@ -265,7 +271,7 @@ def main(params):
     if output_list:
         show_list(output_list, first_n, reverse)
     elif output_stat:
-        show_stat(output_stat, first_n, reverse)
+        show_stat(output_stat, first_n, reverse, params.statistic)
 
 
 if __name__ == '__main__':
@@ -273,7 +279,6 @@ if __name__ == '__main__':
     output = []
     parser = create_parser()
     params = parser.parse_args()
-    print(params)
     try:
         main(params)
     except NoMatchException:  # no match in file
