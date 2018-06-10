@@ -1,13 +1,43 @@
 import re
 import argparse
 
+ERROR_END = 'Usage: searcher.py [OPTIONS] PATTERN [FILENAME] \n\n' \
+            'Usage "searcher.py --help" for more information'
+ERROR_FILE_EXPANSION = 'Error: FILENAME should ends with ".txt" \n' + ERROR_END
+ERROR_NO_FILE = 'Error while opening "{0}": no such file \n' + ERROR_END
+ERROR_FILE = 'Error while opening "{0}" \n' + ERROR_END
+EMPTY_FILE_ERROR = 'Error: file "{0}" is empty'
+HELP_INFO = """Usage: searcher.py [OPTIONS] PATTERN [FILENAME] \n
+    Show a list of all matches of the regular expression PATTERN in the FILENAME
+
+    PATTERN is a regular expression like '“\w+@[\w.-_]+”'
+    FILENAME is a filename like 'example.txt'
+    OPTIONS:
+        -u                \tList unique matches only
+        -c                \tGet total count of found matches
+        -l                \tGet total count of lines, where at least one match
+                                was found
+        -s <sort_option>  \tSorting of found matches by alphabet or frequency
+                                (related to all found matches).
+                                Default sorting by alphabet
+                                sort_option: 'abc' | 'freq'
+        -o <order_option>  \tSpecify sorting order (ascending, descending).
+                                Default order is ascending.
+                                order_option: 'asc' | 'desc'
+        -n                 \tList first N matches
+        -stat <option>     \tList unique matches with statistic
+                                (count or frequency in percents).
+                                Default statistic is count.
+                                option: 'count' | 'freq'
+    """
+
 
 def create_parser():
     """
     :return: an arguments parser
     """
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(conflict_handler='resolve')
     options = [
         ['-u', 'unique', 'store_true'],
         ['-c', 'count', 'store_true'],
@@ -15,7 +45,8 @@ def create_parser():
         ['-s', 'sort', 'store'],
         ['-o', 'order', 'store'],
         ['-n', 'first_n', 'store'],
-        ['-stat', 'statistic', 'store']
+        ['-stat', 'statistic', 'store'],
+        ['--help', 'help', 'store_true']
     ]
     for option, name, action in options:
         parser.add_argument(option, dest=name, action=action)
@@ -48,7 +79,6 @@ def count_matches(reg, file):
     """
 
     counter = 0
-    file.seek(0)
     for line in file:
         result = re.findall(reg, line)
         counter += len(result)
@@ -80,7 +110,6 @@ def get_statistic_dict(reg, file):
     """
 
     results = {}
-    file.seek(0)
     for line in file:
         result = re.findall(reg, line)
         for item in result:
@@ -145,38 +174,76 @@ def stat(reg, file, output_format, sort='abc', ord='asc'):
         return sorted_statistic
 
 
+def show_stat(list, first_n):
+    pass
+
+
+def show_list(list, first_n):
+    if first_n:
+        for i in range(first_n):
+            print(list[i])
+    else:
+        print(output)
+
+
+def main(params):
+    data = []
+    output_list = []
+    output_stat = []
+
+    if params.help:  # Show help
+        print(HELP_INFO)
+        return
+
+    if params.file and params.reg:
+        filename = params.file[0]
+        if not filename.endswith('.txt'):  # Check file expansion
+            print(ERROR_FILE_EXPANSION)
+            return
+        try:
+            with open(filename, 'r') as file:  # Fill data from file
+                for line in file:
+                    data.append(line)
+        except FileNotFoundError:
+            print(ERROR_NO_FILE.format(filename))
+            return
+        except IOError:
+            print(ERROR_FILE.format(filename))
+            return
+        if not data:  # Check if data is empty
+            print(EMPTY_FILE_ERROR.format(filename))
+            return
+
+        if params.unique:  
+            matches_list = get_matches_list(params.reg[0], data)
+            matches_list = set(matches_list)
+            if params.count:
+                print(len(matches_list))
+            else:
+                output = matches_list
+        elif params.count:
+            print(count_matches(params.reg[0], data))
+        elif params.count_lines:
+            print(count_lines(params.reg[0], data))
+        elif params.sort:
+            if params.sort == 'freq':
+                output = sort_matches(params.reg[0], data, 'freq')
+            elif params.sort == 'abc':
+                output = sort_matches(params.reg[0], data, 'abc')
+        elif params.statistic:
+            if params.statistic == 'freq':
+                output = stat(params.reg[0], data, 'freq')
+            elif params.statistic == 'count':
+                output = stat(params.reg[0], data, 'count')
+        output_list(output, int(params.first_n))
+
+
 if __name__ == '__main__':
 
     output = []
     parser = create_parser()
     params = parser.parse_args()
     print(params)
-    if params.file:
-        with open(params.file[0], 'r') as file:
-            if params.unique:
-                results = get_matches_list(params.reg[0], file)
-                results = set(results)
-                if params.count:
-                    print(len(results))
-                else:
-                    output = results
-            elif params.count:
-                print(count_matches(params.reg[0], file))
-            elif params.count_lines:
-                print(count_lines(params.reg[0], file))
-            elif params.sort:
-                if params.sort == 'freq':
-                    output = sort_matches(params.reg[0], file, 'freq')
-                elif params.sort == 'abc':
-                    output = sort_matches(params.reg[0], file, 'abc')
-            elif params.statistic:
-                if params.statistic == 'freq':
-                    output = stat(params.reg[0], file, 'freq')
-                elif params.statistic == 'count':
-                    output = stat(params.reg[0], file, 'count')
-            if params.first_n:
-                print(output)
-                for i in range(int(params.first_n)):
-                    print(output[i])
-            else:
-                print(output)
+    main(params)
+
+
