@@ -7,29 +7,7 @@ ERROR_FILE_EXPANSION = 'Error: FILENAME should ends with ".txt" \n' + ERROR_END
 ERROR_NO_FILE = 'Error while opening "{0}": no such file \n' + ERROR_END
 ERROR_FILE = 'Error while opening "{0}" \n' + ERROR_END
 EMPTY_FILE_ERROR = 'Error: file "{0}" is empty'
-HELP_INFO = """Usage: searcher.py [OPTIONS] PATTERN [FILENAME] \n
-    Show a list of all matches of the regular expression PATTERN in the FILENAME
-
-    PATTERN is a regular expression like '“\w+@[\w.-_]+”'
-    FILENAME is a filename like 'example.txt'
-    OPTIONS:
-        -u                \tList unique matches only
-        -c                \tGet total count of found matches
-        -l                \tGet total count of lines, where at least one match
-                                was found
-        -s <sort_option>  \tSorting of found matches by alphabet or frequency
-                                (related to all found matches).
-                                Default sorting by alphabet
-                                sort_option: 'abc' | 'freq'
-        -o <order_option>  \tSpecify sorting order (ascending, descending).
-                                Default order is ascending.
-                                order_option: 'asc' | 'desc'
-        -n                 \tList first N matches
-        -stat <option>     \tList unique matches with statistic
-                                (count or frequency in percents).
-                                Default statistic is count.
-                                option: 'count' | 'freq'
-    """
+MSG_NO_MATCHES = 'No matches of regular expression in file'
 
 
 def create_parser():
@@ -39,23 +17,28 @@ def create_parser():
 
     parser = argparse.ArgumentParser(conflict_handler='resolve')
     options = [
-        ['-u', 'unique', 'store_true'],
-        ['-c', 'count', 'store_true'],
-        ['-l', 'count_lines', 'store_true'],
-        ['-n', 'first_n', 'store'],
-        ['-stat', 'statistic', 'store'],
-        ['--help', 'help', 'store_true']
+        ['-u', 'unique', 'store_true',
+         'List unique matches only'],
+        ['-c', 'count', 'store_true',
+         'Get total count of found matches'],
+        ['-l', 'count_lines', 'store_true',
+         """Get total count of lines, where at least one match was found"""],
+        ['-s', 'sort', 'store',
+         """Sorting of found matches by alphabet or frequency
+         (related to all found matches).
+         SORT: 'abc' | 'freq'
+        """],
+        ['-o', 'order', 'store',
+         """Specify sorting order (ascending, descending).
+         ORDER: 'asc' | 'desc'
+        """],
+        ['-n', 'first_n', 'store', 'List first N matches'],
+        ['-stat', 'statistic', 'store',
+         """List unique matches with statistic (count or frequency in percents).
+         STATISTIC: 'count' | 'freq'"""]
     ]
-    for option, name, action in options:
-        parser.add_argument(option, dest=name, action=action)
-
-    options = [
-        ['-s', 'sort', 'store', 'abc'],
-        ['-o', 'order', 'store', 'asc']
-    ]
-    for option, name, action, const in options:
-        parser.add_argument(option, dest=name, action=action,
-                            const=const)
+    for option, name, action, help in options:
+        parser.add_argument(option, dest=name, action=action, help=help)
 
     parser.add_argument('reg', nargs=1)
     parser.add_argument('file', nargs=1)
@@ -160,6 +143,9 @@ def stat(reg, file, output_format, sort='abc', ord='asc'):
 
     sorted_statistic = []
     statistic_dict = get_statistic_dict(reg, file)
+    if not statistic_dict:
+        print(MSG_NO_MATCHES)
+        return None
     total = count_matches(reg, file)
     if sort == 'abc':
         for k in sort_matches(reg, file, 'abc'):
@@ -185,7 +171,7 @@ def show_stat(list, first_n):
         for i in range(first_n):
             print(list[i])
     else:
-        print(output)
+        print(list)
 
 
 def show_list(list, first_n):
@@ -193,7 +179,7 @@ def show_list(list, first_n):
         for i in range(first_n):
             print(list[i])
     else:
-        print(output)
+        print(list)
 
 
 def main(params):
@@ -201,9 +187,9 @@ def main(params):
     output_list = []
     output_stat = []
 
-    if params.help:  # Show help
-        print(HELP_INFO)
-        return
+    # if params.help:  # Show help
+    #     print(HELP_INFO)
+    #     return
 
     if params.file and params.reg:
         filename = params.file[0]
@@ -224,7 +210,7 @@ def main(params):
             print(EMPTY_FILE_ERROR.format(filename))
             return
 
-        first_n = int(params.first_n) if params.first_n else 0
+        first_n = int(params.first_n) if params.first_n else None
         if params.unique:
             matches_list = get_matches_list(params.reg[0], data)
             matches_list = set(matches_list)
